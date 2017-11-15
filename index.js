@@ -27,6 +27,16 @@ app.use(session({
 }))
 // flash 中间件，用来显示通知
 app.use(flash());
+app.locals.blog = {
+  title: pkg.name,
+  description: pkg.description 
+}
+app.use(function(req, res, next){
+  res.locals.user = req.session.user
+  res.locals.success = req.flash('success').toString()
+  res.locals.error = req.flash('error').toString()
+  next()
+})
 
 routes(app);
 app.listen(config.port,function(){
