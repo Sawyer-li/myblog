@@ -10,8 +10,8 @@ const pkg = require('./package')
 const app = express();
 app.set('views', path.join(__dirname,'views'));
 app.set('view engine', 'ejs');
-app.set(express.static(path.join(__dirname,'public')));
 
+app.use(express.static(path.join(__dirname, 'public')))
 // session 中间件
 app.use(session({
   name: config.session.key, // 设置 cookie 中保存 session id 的字段名称
@@ -25,6 +25,13 @@ app.use(session({
     url: config.mongodb// mongodb 地址
   })
 }))
+
+app.use(require('express-formidable')({
+  uploadDir: path.join(__dirname, 'public/img'),
+  keepExtensions:true
+}))
+
+
 // flash 中间件，用来显示通知
 app.use(flash());
 app.locals.blog = {
