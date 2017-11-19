@@ -16,6 +16,8 @@ router.get('/', function (req, res, next) {
 // checkNotLogin, 
 // POST /signup 用户注册
 router.post('/',function (req, res, next) {
+	var _res = res;
+	var _req = req;
 	const name = req.fields.name;
 	const gender = req.fields.gender;
 	let password = req.fields.password;
@@ -49,9 +51,25 @@ router.post('/',function (req, res, next) {
 		req.flash('error',e.message);
 		return res.redirect('/signup');
 	}
+	password = sha1(password);
+	let user = {
+		name: name,
+		password: password,
+		gender: gender,
+		bio: bio,
+		avatar: avatar 
+	}
+	console.log(user);
 	console.log('start');
-	console.log(name,gender,bio);
-	res.send('注册')
+	UserModel.create(user)
+		.then(function(res){
+			user = res.ops[0];
+			delete user.password;
+			console.log(_req.session);
+			_req.session.user = user;
+			_req.flash('success','登入成功');
+			_res.redirect('/');
+		})
 }) 
 
 module.exports = router
