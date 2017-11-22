@@ -7,11 +7,12 @@ router.get('/', function(req, res, next){
 })
 
 router.post('/create', checkLogin, function(req, res, next){
-	res.send('发布文章');
+	res.send('发布文章页');
 })
 
-router.get('create', checkLogin, function(req, res, next){
-	res.send('发布文章页');
+router.get('/create', checkLogin, function(req, res, next){
+	
+	res.render('create');
 })
 
 router.get('/:postId', function(req, res, next){

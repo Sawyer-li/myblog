@@ -7,7 +7,7 @@ const checkLogin = require('../middlewares/check').checkLogin
 //checkLogin,
 router.get('/',  function (req, res, next) {
 	req.session.user = null;
-	req.flash('success','成功登入');
+	req.flash('success','成功注销');
 	res.redirect('/posts');
 })
 
