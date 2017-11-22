@@ -3,7 +3,8 @@ module.exports = {
 	session: {
 	    secret: 'myblog',
 	    key: 'myblog',
-	    maxAge: 2592000000
+	    maxAge: 2592000000                //过期时间约为一个月如果不注销
 	},
 	mongodb: 'mongodb://localhost:27017/myblog'
 }
+

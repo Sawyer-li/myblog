@@ -2,16 +2,46 @@ const express = require('express');
 const router = express.Router();
 const checkLogin = require('../middlewares/check').checkLogin;
 
+const PostModel = require('../models/posts')
+
 router.get('/', function(req, res, next){
 	res.render('posts');
 })
 
 router.post('/create', checkLogin, function(req, res, next){
-	res.send('发布文章页');
+    const author = req.session.user._id
+   	const title = req.fields.title
+  	const content = req.fields.content
+  	try{
+  		if(!title.length){
+  			throw new Error('请输入标题');
+  		}
+  		if(!content.length){
+  			throw new Error('内容不能为空');
+  		}
+  	}catch(e){
+  		req.flash('error',e.message)
+  		return res.redirect('back');
+  	}
+  	let post = {
+		author: author,
+		title: title,
+		content: content,
+		pv: 0
+	}
+	PostModel.create(post)
+	    .then(function (result) {
+	      // 此 post 是插入 mongodb 后的值，包含 _id
+	      post = result.ops[0]
+	      req.flash('success', '发表成功')
+	      // 发表成功后跳转到该文章页
+	      res.redirect(`/posts/${post._id}`)
+	    })
+	    .catch(next)
 })
 
 router.get('/create', checkLogin, function(req, res, next){
-	
+
 	res.render('create');
 })
 
