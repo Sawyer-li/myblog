@@ -1,11 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const checkLogin = require('../middlewares/check').checkLogin;
-
+const CommentModel = require('../models/comments')
 const PostModel = require('../models/posts')
 
 router.get('/', function(req, res, next){
-	res.render('posts');
+  const author = req.query.author
+  PostModel.getPosts(author)
+    .then(function(posts){
+	    res.render('posts',{
+        initData: posts
+      });
+    })
+    .catch(next)
 })
 
 router.post('/create', checkLogin, function(req, res, next){
@@ -45,17 +52,102 @@ router.get('/create', checkLogin, function(req, res, next){
 	res.render('create');
 })
 
+//具体文章页
 router.get('/:postId', function(req, res, next){
-	res.send('文章详情页');
+  const postId = req.params.postId;
+  Promise.all([
+    PostModel.getPostById(postId),    //获取文章信息
+    CommentModel.getComments(postId),   //获取文章下面的所有留言
+    PostModel.incPc(postId)            //pv加1
+  ])
+  .then(function(result){
+    const post = result[0];
+    const comments = result[1];
+	  res.render('topic',{
+      post: post,
+      comments: comments
+    });
+  })
+  .catch(next)
 })
 // GET /posts/:postId/edit 更新文章页
 router.get('/:postId/edit', checkLogin, function (req, res, next) {
-  res.send('更新文章页')
+  const postId = req.params.postId
+  const author = req.session.user._id
+  PostModel.getRawPostById(postId)
+    .then(function(post){
+      if(!post){
+        throw new Error('该文章不存在')
+      }
+      if(author.toString() !== post.author._id.toString()){
+        throw new Error('权限不足')
+      }
+      res.render('edit',{
+        post: post 
+      })
+    })
+    .catch(next)
+})
+
+// GET /posts/:postId/remove 删除一篇文章
+router.get('/:postId/remove', checkLogin, function (req, res, next) {
+  const postId = req.params.postId
+  const author = req.session.user._id
+
+  PostModel.getRawPostById(postId)
+    .then(function (post) {
+      if (!post) {
+        throw new Error('文章不存在')
+      }
+      if (post.author._id.toString() !== author.toString()) {
+        throw new Error('没有权限')
+      }
+      PostModel.delPostById(postId)
+        .then(function () {
+          req.flash('success', '删除文章成功')
+          // 删除成功后跳转到主页
+          res.redirect('/posts')
+        })
+        .catch(next)
+    })
 })
 
 // POST /posts/:postId/edit 更新一篇文章
 router.post('/:postId/edit', checkLogin, function (req, res, next) {
-  res.send('更新文章')
+  const postId = req.params.postId
+  const author = req.session.user._id
+  const title = req.fields.title
+  const content = req.fields.content
+  try{
+    if(!title){
+      throw new Error('标题不能为空')
+    }
+    if(!content){
+      throw new Error('内容不能为空')
+    }
+     PostModel.getRawPostById(postId)
+    .then(function (post) {
+      if (!post) {
+        throw new Error('文章不存在')
+      }
+      if (post.author._id.toString() !== author.toString()) {
+        throw new Error('没有权限')
+      }
+      PostModel.updatePostById(postId, { title: title, content: content })
+        .then(function () {
+          req.flash('success', '编辑文章成功')
+          // 编辑成功后跳转到上一页
+          res.redirect(`/posts/${postId}`)
+        })
+        .catch(next)
+    })
+  }catch(e){
+    req.flash('error', e.message)
+    return res.redirect('back')
+  }
+  
+
+  console.log(title,content);
 })
 
 // GET /posts/:postId/remove 删除一篇文章
