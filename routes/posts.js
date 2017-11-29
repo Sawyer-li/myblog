@@ -51,6 +51,10 @@ router.get('/create', checkLogin, function(req, res, next){
 
 	res.render('create');
 })
+//欢迎加入公共聊天室
+router.get('/chat', checkLogin, function(req, res, next){
+  res.render('chat');
+})
 
 //具体文章页
 router.get('/:postId', function(req, res, next){
@@ -164,5 +168,6 @@ router.post('/:postId/comment', checkLogin, function (req, res, next) {
 router.get('/:postId/comment/:commentId/remove', checkLogin, function (req, res, next) {
   res.send('删除留言')
 })
+
 
 module.exports = router
